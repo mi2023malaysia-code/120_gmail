@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gmail Connect - Google OAuth 2.0 Web Client</title>
+  <meta name="description" content="Modern glassmorphism Gmail client powered by Google Identity Services and Gmail REST API with real-time OAuth 2.0 connection.">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand-container">
+        <div class="brand-icon">
+          <i class="fa-solid fa-envelope"></i>
+        </div>
+        <span class="brand-title">Gmail Connect</span>
+      </div>
+
+      <button id="open-compose-btn" class="compose-btn">
+        <i class="fa-solid fa-pen"></i>
+        <span>Compose</span>
+      </button>
+
+      <!-- Navigation Folders -->
+      <nav class="nav-section">
+        <div class="nav-section-title">Folders</div>
+        <a class="nav-item active" data-folder="INBOX">
+          <i class="fa-solid fa-inbox"></i>
+          <span>Inbox</span>
+          <span class="badge" id="unread-count">3</span>
+        </a>
+        <a class="nav-item" data-folder="STARRED">
+          <i class="fa-solid fa-star"></i>
+          <span>Starred</span>
+        </a>
+        <a class="nav-item" data-folder="SENT">
+          <i class="fa-solid fa-paper-plane"></i>
+          <span>Sent</span>
+        </a>
+        <a class="nav-item" data-folder="DRAFT">
+          <i class="fa-solid fa-file"></i>
+          <span>Drafts</span>
+        </a>
+        <a class="nav-item" data-folder="TRASH">
+          <i class="fa-solid fa-trash-can"></i>
+          <span>Trash</span>
+        </a>
+      </nav>
+
+      <!-- Custom Labels -->
+      <nav class="nav-section">
+        <div class="nav-section-title">Labels</div>
+        <a class="nav-item" data-label="WORK">
+          <span class="label-dot" style="background: #3b82f6;"></span>
+          <span>Work</span>
+        </a>
+        <a class="nav-item" data-label="DESIGN">
+          <span class="label-dot" style="background: #ec4899;"></span>
+          <span>Design</span>
+        </a>
+        <a class="nav-item" data-label="IMPORTANT">
+          <span class="label-dot" style="background: #f59e0b;"></span>
+          <span>Important</span>
+        </a>
+      </nav>
+
+      <!-- Storage Meter -->
+      <div class="storage-box">
+        <div class="storage-header">
+          <span>Storage</span>
+          <span>6.3 GB of 15 GB</span>
+        </div>
+        <div class="storage-bar-bg">
+          <div class="storage-bar-fill"></div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <main class="main-wrapper">
+      <!-- Top Header Nav -->
+      <header class="top-header">
+        <div class="search-box">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input type="text" id="search-input" class="search-input" placeholder="Search emails by sender, subject, keywords...">
+        </div>
+
+        <div class="header-actions">
+          <div id="status-badge" class="status-badge">
+            <span class="status-dot"></span>
+            <span id="status-text">Demo Mode</span>
+          </div>
+
+          <button id="client-id-setup-btn" class="connect-btn" title="Setup OAuth Credentials">
+            <i class="fa-solid fa-gear"></i>
+            <span>Setup Client ID</span>
+          </button>
+
+          <button id="google-auth-btn" class="connect-btn google-btn">
+            <i class="fa-brands fa-google"></i>
+            <span id="auth-btn-label">Connect Account</span>
+          </button>
+
+          <div id="user-avatar-btn" class="user-avatar" title="Google Account Profile">
+            <span id="avatar-initials">AR</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Category Filter Tabs -->
+      <div class="tabs-bar">
+        <div class="tab-item active" data-category="all">
+          <i class="fa-solid fa-layer-group"></i>
+          <span>All Messages</span>
+        </div>
+        <div class="tab-item" data-category="primary">
+          <i class="fa-solid fa-user"></i>
+          <span>Primary</span>
+        </div>
+        <div class="tab-item" data-category="social">
+          <i class="fa-solid fa-users"></i>
+          <span>Social</span>
+        </div>
+        <div class="tab-item" data-category="promotions">
+          <i class="fa-solid fa-tag"></i>
+          <span>Promotions</span>
+        </div>
+        <div class="tab-item" data-category="updates">
+          <i class="fa-solid fa-circle-info"></i>
+          <span>Updates</span>
+        </div>
+      </div>
+
+      <!-- Main Dual Pane Content -->
+      <section class="content-area">
+        <!-- Email List Pane -->
+        <div class="email-list-pane">
+          <div class="list-toolbar">
+            <div class="toolbar-group">
+              <input type="checkbox" id="select-all-checkbox" style="cursor: pointer; width: 16px; height: 16px;">
+              <button id="refresh-btn" class="icon-btn" title="Refresh List">
+                <i class="fa-solid fa-rotate-right"></i>
+              </button>
+              <button id="mark-read-btn" class="icon-btn" title="Mark as Read">
+                <i class="fa-solid fa-envelope-open"></i>
+              </button>
+              <button id="delete-selected-btn" class="icon-btn" title="Move to Trash">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </div>
+            <div id="email-count-display">Showing 5 messages</div>
+          </div>
+
+          <!-- Email Items Container -->
+          <div id="email-list-container">
+            <!-- Dynamically populated emails -->
+          </div>
+        </div>
+
+        <!-- Detail Pane Slide-over -->
+        <div id="email-detail-pane" class="email-detail-pane">
+          <div class="detail-header-bar">
+            <button id="close-detail-btn" class="connect-btn">
+              <i class="fa-solid fa-arrow-left"></i>
+              <span>Back to Inbox</span>
+            </button>
+            <div style="display: flex; gap: 8px;">
+              <button id="detail-star-btn" class="icon-btn" title="Star Email">
+                <i class="fa-regular fa-star"></i>
+              </button>
+              <button id="detail-delete-btn" class="icon-btn" title="Move to Trash">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="detail-body">
+            <h1 id="detail-subject" class="detail-subject">Email Subject Title</h1>
+            
+            <div class="sender-card">
+              <div class="sender-info">
+                <div id="detail-avatar" class="sender-avatar">G</div>
+                <div>
+                  <div id="detail-sender-name" style="font-weight: 700; color: #fff;">Sender Name</div>
+                  <div id="detail-sender-email" style="font-size: 0.82rem; color: var(--text-muted);">sender@example.com</div>
+                </div>
+              </div>
+              <div id="detail-date" style="font-size: 0.85rem; color: var(--text-dim);">Today, 10:42 AM</div>
+            </div>
+
+            <!-- Email Body Content -->
+            <div id="detail-html-body" class="email-text-body">
+              <!-- Rendered email content -->
+            </div>
+
+            <!-- Attachments area if any -->
+            <div id="detail-attachments-area" style="display: flex; flex-direction: column; gap: 8px;"></div>
+
+            <!-- Quick Reply Box -->
+            <div class="quick-reply-box">
+              <div style="font-weight: 600; font-size: 0.9rem; color: var(--text-muted);">
+                <i class="fa-solid fa-reply"></i> Quick Reply
+              </div>
+              <textarea id="reply-text" class="reply-textarea" placeholder="Type your reply message here..."></textarea>
+              <div style="display: flex; justify-content: flex-end;">
+                <button id="send-reply-btn" class="compose-btn" style="padding: 8px 18px; font-size: 0.88rem;">
+                  <i class="fa-solid fa-paper-plane"></i> Send Reply
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Modal: Compose Email -->
+    <div id="compose-modal" class="modal-overlay">
+      <div class="modal-card">
+        <div class="modal-header">
+          <span class="modal-title"><i class="fa-solid fa-pen-to-square"></i> New Message</span>
+          <button id="close-compose-modal" class="icon-btn"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">To:</label>
+            <input type="email" id="compose-to" class="form-input" placeholder="recipient@example.com">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Subject:</label>
+            <input type="text" id="compose-subject" class="form-input" placeholder="Email Subject">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Message Body:</label>
+            <textarea id="compose-body" class="form-textarea" rows="8" placeholder="Write your message here..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="cancel-compose-btn" class="connect-btn">Cancel</button>
+          <button id="send-email-btn" class="compose-btn" style="padding: 10px 22px;">
+            <i class="fa-solid fa-paper-plane"></i> Send Message
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Client ID & Setup Config -->
+    <div id="config-modal" class="modal-overlay">
+      <div class="modal-card" style="max-width: 680px;">
+        <div class="modal-header">
+          <span class="modal-title"><i class="fa-solid fa-sliders"></i> Google OAuth 2.0 Credentials Setup</span>
+          <button id="close-config-modal" class="icon-btn"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">OAuth 2.0 Client ID (Web Application):</label>
+            <input type="text" id="client-id-input" class="form-input" placeholder="YOUR_CLIENT_ID.apps.googleusercontent.com">
+          </div>
+
+          <div style="margin-top: 8px; font-weight: 700; font-size: 0.9rem; color: #fff;">
+            How to get your Client ID:
+          </div>
+
+          <div class="guide-step">
+            <span class="step-num">1</span>
+            <div class="step-content">
+              Go to the <a href="https://console.cloud.google.com/" target="_blank" style="color: #60a5fa; font-weight: 600;">Google Cloud Console</a>, create a project, and enable the <strong>Gmail API</strong> under APIs & Services.
+            </div>
+          </div>
+
+          <div class="guide-step">
+            <span class="step-num">2</span>
+            <div class="step-content">
+              Under <strong>OAuth Consent Screen</strong>, set User Type to <em>External</em> or <em>Internal</em>, add scopes: <code>gmail.readonly</code>, <code>gmail.send</code>, <code>gmail.modify</code>.
+            </div>
+          </div>
+
+          <div class="guide-step">
+            <span class="step-num">3</span>
+            <div class="step-content">
+              Go to <strong>Credentials</strong> &rarr; <strong>Create Credentials</strong> &rarr; <strong>OAuth Client ID</strong> (Web application). Add Authorized JavaScript origin: <code>http://127.0.0.1:5173</code> (or <code>http://localhost:5173</code>).
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="save-client-id-btn" class="compose-btn" style="padding: 10px 22px;">
+            <i class="fa-solid fa-check"></i> Save & Initialize Client ID
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="toast-container"></div>
+  </div>
+
+  <script type="module" src="/js/app.js"></script>
+</body>
+</html>
